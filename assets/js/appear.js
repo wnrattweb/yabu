@@ -1,151 +1,120 @@
-/*
- * jQuery.appear
- * https://github.com/bas2k/jquery.appear/
- * http://code.google.com/p/jquery-appear/
- * http://bas2k.ru/
- *
- * Copyright (c) 2009 Michael Hixson
- * Copyright (c) 2012-2014 Alexander Brovikov
- * Licensed under the MIT license (http://www.opensource.org/licenses/mit-license.php)
- */
-(function($) {
-    $.fn.appear = function(fn, options) {
+(function ($) {
+  var selectors = [];
 
-        var settings = $.extend({
+  var checkBinded = false;
+  var checkLock = false;
+  var defaults = {
+    interval: 250,
+    force_process: false
+  };
+  var $window = $(window);
 
-            //arbitrary data to pass to fn
-            data: undefined,
+  var $priorAppeared = [];
 
-            //call fn only on the first appear?
-            one: true,
+  function isAppeared() {
+    return $(this).is(':appeared');
+  }
 
-            // X & Y accuracy
-            accX: 0,
-            accY: 0
+  function isNotTriggered() {
+    return !$(this).data('_appear_triggered');
+  }
 
-        }, options);
+  function process() {
+    checkLock = false;
 
-        return this.each(function() {
+    for (var index = 0, selectorsLength = selectors.length; index < selectorsLength; index++) {
+      var $appeared = $(selectors[index]).filter(isAppeared);
 
-            var t = $(this);
+      $appeared
+        .filter(isNotTriggered)
+        .data('_appear_triggered', true)
+        .trigger('appear', [$appeared]);
 
-            //whether the element is currently visible
-            t.appeared = false;
+      if ($priorAppeared[index]) {
+        var $disappeared = $priorAppeared[index].not($appeared);
+        $disappeared
+          .data('_appear_triggered', false)
+          .trigger('disappear', [$disappeared]);
+      }
+      $priorAppeared[index] = $appeared;
+    }
+  }
 
-            if (!fn) {
+  function addSelector(selector) {
+    selectors.push(selector);
+    $priorAppeared.push();
+  }
 
-                //trigger the custom event
-                t.trigger('appear', settings.data);
-                return;
-            }
+  // ":appeared" custom filter
+  $.expr.pseudos.appeared = $.expr.createPseudo(function (_arg) {
+    return function (element) {
+      var $element = $(element);
 
-            var w = $(window);
+      if (!$element.is(':visible')) {
+        return false;
+      }
 
-            //fires the appear event when appropriate
-            var check = function() {
+      var windowLeft = $window.scrollLeft();
+      var windowTop = $window.scrollTop();
+      var offset = $element.offset();
+      var left = offset.left;
+      var top = offset.top;
 
-                //is the element hidden?
-                if (!t.is(':visible')) {
-
-                    //it became hidden
-                    t.appeared = false;
-                    return;
-                }
-
-                //is the element inside the visible window?
-                var a = w.scrollLeft();
-                var b = w.scrollTop();
-                var o = t.offset();
-                var x = o.left;
-                var y = o.top;
-
-                var ax = settings.accX;
-                var ay = settings.accY;
-                var th = t.height();
-                var wh = w.height();
-                var tw = t.width();
-                var ww = w.width();
-
-                if (y + th + ay >= b &&
-                    y <= b + wh + ay &&
-                    x + tw + ax >= a &&
-                    x <= a + ww + ax) {
-
-                    //trigger the custom event
-                    if (!t.appeared) t.trigger('appear', settings.data);
-
-                } else {
-
-                    //it scrolled out of view
-                    t.appeared = false;
-                }
-            };
-
-            //create a modified fn with some additional logic
-            var modifiedFn = function() {
-
-                //mark the element as visible
-                t.appeared = true;
-
-                //is this supposed to happen only once?
-                if (settings.one) {
-
-                    //remove the check
-                    w.unbind('scroll', check);
-                    var i = $.inArray(check, $.fn.appear.checks);
-                    if (i >= 0) $.fn.appear.checks.splice(i, 1);
-                }
-
-                //trigger the original fn
-                fn.apply(this, arguments);
-            };
-
-            //bind the modified fn to the element
-            if (settings.one) t.one('appear', settings.data, modifiedFn);
-            else t.bind('appear', settings.data, modifiedFn);
-
-            //check whenever the window scrolls
-            w.scroll(check);
-
-            //check whenever the dom changes
-            $.fn.appear.checks.push(check);
-
-            //check now
-            (check)();
-        });
+      if (top + $element.height() >= windowTop &&
+          top - ($element.data('appear-top-offset') || 0) <= windowTop + $window.height() &&
+          left + $element.width() >= windowLeft &&
+          left - ($element.data('appear-left-offset') || 0) <= windowLeft + $window.width()) {
+        return true;
+      }
+      return false;
     };
+  });
 
-    //keep a queue of appearance checks
-    $.extend($.fn.appear, {
+  $.fn.extend({
+    // watching for element's appearance in browser viewport
+    appear: function (selector, options) {
+      $.appear(this, options);
+      return this;
+    }
+  });
 
-        checks: [],
-        timeout: null,
+  $.extend({
+    appear: function (selector, options) {
+      var opts = $.extend({}, defaults, options || {});
 
-        //process the queue
-        checkAll: function() {
-            var length = $.fn.appear.checks.length;
-            if (length > 0) while (length--) ($.fn.appear.checks[length])();
-        },
+      if (!checkBinded) {
+        var onCheck = function () {
+          if (checkLock) {
+            return;
+          }
+          checkLock = true;
 
-        //check the queue asynchronously
-        run: function() {
-            if ($.fn.appear.timeout) clearTimeout($.fn.appear.timeout);
-            $.fn.appear.timeout = setTimeout($.fn.appear.checkAll, 20);
-        }
-    });
+          setTimeout(process, opts.interval);
+        };
 
-    //run checks when these methods are called
-    $.each(['append', 'prepend', 'after', 'before', 'attr',
-        'removeAttr', 'addClass', 'removeClass', 'toggleClass',
-        'remove', 'css', 'show', 'hide'], function(i, n) {
-        var old = $.fn[n];
-        if (old) {
-            $.fn[n] = function() {
-                var r = old.apply(this, arguments);
-                $.fn.appear.run();
-                return r;
-            }
-        }
-    });
+        $(window).scroll(onCheck).resize(onCheck);
+        checkBinded = true;
+      }
 
-})(jQuery);
+      if (opts.force_process) {
+        setTimeout(process, opts.interval);
+      }
+
+      addSelector(selector);
+    },
+    // force elements's appearance check
+    force_appear: function () {
+      if (checkBinded) {
+        process();
+        return true;
+      }
+      return false;
+    }
+  });
+}(function () {
+  if (typeof module !== 'undefined') {
+    // Node
+    return require('jquery');
+  }
+  return jQuery;
+}()));
