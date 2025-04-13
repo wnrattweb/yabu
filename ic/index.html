@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel Dashboard</title>
+  <link rel="stylesheet" href="watch.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .slider {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      overflow: hidden;
+    }
+    .slides {
+      display: flex;
+      width: 500%;
+      animation: slide 20s infinite;
+    }
+    @keyframes slide {
+      0% { margin-left: 0%; }
+      20% { margin-left: 0%; }
+      25% { margin-left: -100%; }
+      45% { margin-left: -100%; }
+      50% { margin-left: -200%; }
+      70% { margin-left: -200%; }
+      75% { margin-left: -300%; }
+      95% { margin-left: -300%; }
+      100% { margin-left: 0%; }
+    }
+    .slides img {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+    }
+    .overlay-logo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 150px;
+      z-index: 2;
+    }
+    .overlay-time {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      z-index: 2;
+      text-shadow: 0 0 10px #000;
+    }
+    .section {
+      padding: 20px;
+    }
+    .flex-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+    }
+    .box {
+      background: linear-gradient(to bottom right, #ffffff, #e0f7fa);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 15px;
+      flex: 1 1 220px;
+      text-align: center;
+    }
+    @media screen and (min-width: 1920px) {
+      body { zoom: 1.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slider">
+    <img src="https://inanlarcity.com/assets/images/logo.png" alt="Hotel Logo" class="overlay-logo">
+    <div class="overlay-time" id="datetime"></div>
+    <div class="slides">
+      <img src="https://inanlarcity.com/assets/images/room/double/03.jpg" alt="Slide 1">
+      <img src="https://inanlarcity.com/assets/images/room/family/04.jpg" alt="Slide 2">
+      <img src="https://inanlarcity.com/assets/images/room/familysuit/03.jpg" alt="Slide 3">
+      <img src="https://inanlarcity.com/assets/images/room/roof/03.jpg" alt="Slide 4">
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>City Clocks</h2>
+    <div class="flex-container" id="clocks"></div>
+  </div>
+
+  <div class="section">
+    <h2>Weather Forecast</h2>
+    <div class="flex-container" id="weather"></div>
+  </div>
+
+  <div class="section">
+    <h2>Exchange Rates</h2>
+    <div class="flex-container" id="exchange-rates"></div>
+  </div>
+
+  <div class="section">
+    <h2>Room Rates</h2>
+    <div class="flex-container">
+      <div class="box">Double Room<br>₺1200</div>
+      <div class="box">Family Room<br>₺1500</div>
+      <div class="box">1+1 Family Suit Room<br>₺2000</div>
+      <div class="box">Roof Room<br>₺2500</div>
+    </div>
+  </div>
+
+  <script>
+    const cities = [
+      { name: "New York", timeZone: "America/New_York" },
+      { name: "London", timeZone: "Europe/London" },
+      { name: "Berlin", timeZone: "Europe/Berlin" },
+      { name: "Riyadh", timeZone: "Asia/Riyadh" },
+      { name: "Istanbul", timeZone: "Europe/Istanbul" }
+    ];
+
+    function updateClocks() {
+      const container = document.getElementById('clocks');
+      container.innerHTML = '';
+      cities.forEach(city => {
+        const now = new Date();
+        const cityTime = new Date(now.toLocaleString('en-US', { timeZone: city.timeZone }));
+        const hours = cityTime.getHours();
+        const minutes = cityTime.getMinutes();
+        const seconds = cityTime.getSeconds();
+
+        const clockHTML = `
+          <div class="box">
+            <h3>${city.name}</h3>
+            <div class="demo-container clocks single linear">
+              <article class="clock simple">
+                <div class="hours-container">
+                  <div class="hours angled" style="transform: rotate(${hours * 30 + minutes / 2}deg);"></div>
+                </div>
+                <div class="minutes-container">
+                  <div class="minutes angled" style="transform: rotate(${minutes * 6}deg);"></div>
+                </div>
+                <div class="seconds-container">
+                  <div class="seconds" style="transform: rotate(${seconds * 6}deg);"></div>
+                </div>
+              </article>
+            </div>
+          </div>
+        `;
+        container.innerHTML += clockHTML;
+      });
+    }
+    setInterval(updateClocks, 1000);
+    updateClocks();
+
+    function updateDatetime() {
+      const dt = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const time = dt.toLocaleTimeString();
+      const date = dt.toLocaleDateString('en-GB', options);
+      document.getElementById('datetime').textContent = `${date} - ${time}`;
+    }
+    setInterval(updateDatetime, 1000);
+    updateDatetime();
+
+    async function fetchExchangeRates() {
+      const container = document.getElementById('exchange-rates');
+      try {
+        const res = await fetch('https://doviz.dev/v1/try.json');
+        const data = await res.json();
+        const currencies = [
+          { name: "USD/TRY", rate: data.USDTRY },
+          { name: "EUR/TRY", rate: data.EURTRY },
+          { name: "SAR/TRY", rate: data.SARTRY }
+        ];
+        currencies.forEach(curr => {
+          const box = document.createElement('div');
+          box.className = 'box';
+          box.innerHTML = `<h3>${curr.name}</h3><p>${curr.rate}</p>`;
+          container.appendChild(box);
+        });
+      } catch {
+        console.log("Exchange rates could not be fetched.");
+      }
+    }
+    fetchExchangeRates();
+  </script>
+  <script src="watch.js"></script>
+</body>
+</html>
