@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>İnanlar City Hotel – Bilgi Ekranı</title>
+
+  <!-- Google Fonts – Noto Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Karanlık tema -->
+  <style>
+    :root{
+      --accent:#45ad59;
+      --bg:#0f1012;
+      --card:#1c1e22;
+      --text:#e8eaed;
+      --text-light:#9aa0a6;
+      --border:#3c4043;
+      font-family:'Noto Sans','Segoe UI','Roboto',sans-serif;
+    }
+    html,body{
+      height:100%;margin:0;overflow:hidden;
+      background:var(--bg);color:var(--text);
+      font:22px/1.6 'Noto Sans',sans-serif;
+    }
+    .container{display:flex;flex-direction:column;height:100%;padding:20px;box-sizing:border-box}
+    .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:12px 20px;margin-bottom:20px;border:1px solid var(--border);border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+    .logo img{max-height:45px;margin-right:15px}
+    .hotel-details-header h1{margin:0 0 3px;font-size:1.9em;font-weight:700}
+    .hotel-details-header p{margin:0;font-size:.8em;color:var(--text-light)}
+    .datetime-header{text-align:right;font-size:.95em;color:var(--text-light)}
+    .datetime-header #time{font-size:1.25em;font-weight:600;color:var(--text)}
+    .main-content-wrapper{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:20px;padding:10px 5px}
+    .section h2{font-size:1.6em;font-weight:600;margin:0 0 20px;border-bottom:3px solid var(--accent);display:inline-block;padding-bottom:10px}
+    .flex-container{display:flex;flex-wrap:wrap;gap:20px}
+    .box{
+      background:var(--card);border:1px solid var(--border);border-radius:6px;
+      box-shadow:0 2px 4px rgba(0,0,0,.2);padding:24px;
+      flex:1 1 300px;min-width:260px;text-align:center;
+      display:flex;flex-direction:column;align-items:center;justify-content:center
+    }
+    .box h3{margin:0 0 .6em;font-size:1.25em;font-weight:600}
+    .currency-rate{font-weight:700;font-size:1.4em;color:var(--accent);min-width:110px;text-align:right}
+    .weather-icon{font-size:3.6em;margin-bottom:.25em;filter:drop-shadow(0 0 4px rgba(0,0,0,.6))}
+    .weather-temp{font-size:1.6em;font-weight:700}
+    .weather-desc{font-size:1em;color:var(--text-light);margin-top:4px;text-transform:capitalize}
+  </style>
+
+  <!-- Analog saat kadranı -->
+  <link rel="stylesheet" href="https://yabu.com.tr/ic/watch.css">
+</head>
+<body>
+<div class="container">
+
+  <!-- ÜST BÖLÜM -->
+  <div class="header">
+    <div class="logo"><img src="https://inanlarcity.com/assets/images/logo.png" alt="Hotel Logo"></div>
+    <div class="hotel-details-header">
+      <h1>İNANLAR CITY HOTEL</h1>
+      <p>TRABZON</p>
+    </div>
+    <div class="datetime-header">
+      <div id="time">--:--:--</div>
+      <div id="date">----------</div>
+    </div>
+  </div>
+
+  <div class="main-content-wrapper">
+
+    <!-- DÜNYA SAATLERİ -->
+    <div class="section">
+      <h2>World Clocks</h2>
+      <div class="flex-container" id="clocks"></div>
+    </div>
+
+    <!-- HAVA DURUMU -->
+    <div class="section">
+      <h2>Weather Forecast</h2>
+      <div class="flex-container" id="weather"></div>
+    </div>
+
+    <!-- ODALAR + DÖVİZ -->
+    <div class="section">
+      <h2>Rates Information</h2>
+      <div class="flex-container">
+        <!-- ODA FİYATLARI -->
+        <div class="box" style="min-width:360px">
+          <h3>🏨 Room Rates</h3>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><td style="color:var(--text-light)">Single</td><td style="text-align:right;font-weight:700">2000 TRY</td></tr>
+            <tr><td style="color:var(--text-light)">Double</td><td style="text-align:right;font-weight:700">2750 TRY</td></tr>
+            <tr><td style="color:var(--text-light)">Triple</td><td style="text-align:right;font-weight:700">3750 TRY</td></tr>
+          </table>
+        </div>
+
+        <!-- DÖVİZ -->
+        <div class="box" style="min-width:360px">
+          <h3>💱 Exchange Rates</h3>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:grid;grid-template-columns:auto 1fr auto;gap:15px;align-items:center">
+              <span>🇺🇸 USD =</span><span class="currency-rate" id="rate-usd">...</span>
+            </div>
+            <div style="display:grid;grid-template-columns:auto 1fr auto;gap:15px;align-items:center">
+              <span>🇪🇺 EUR =</span><span class="currency-rate" id="rate-eur">...</span>
+            </div>
+            <div style="display:grid;grid-template-columns:auto 1fr auto;gap:15px;align-items:center">
+              <span>🇸🇦 SAR =</span><span class="currency-rate" id="rate-sar">...</span>
+            </div>
+          </div>
+          <small id="rates-updated" style="display:block;margin-top:10px;color:var(--text-light);font-size:.75em"></small>
+          <small style="display:block;margin-top:8px;color:var(--text-light);font-size:.8em"></small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer" style="text-align:center;padding-top:20px;border-top:1px solid var(--border);font-size:.85em;color:var(--text-light)">
+    &copy; <span id="current-year"></span> İnanlar City Hotel
+  </div>
+
+</div>
+
+<script>
+/* ---------------- SAATLER ---------------- */
+const cities = [
+  {id:'ny',     name:'NEW YORK', tz:'America/New_York'},
+  {id:'london', name:'LONDON',   tz:'Europe/London'},
+  {id:'berlin', name:'BERLIN',   tz:'Europe/Berlin'},
+  {id:'riyadh', name:'RIYADH',   tz:'Asia/Riyadh'},
+  {id:'trabzon',name:'TRABZON',  tz:'Europe/Istanbul'},
+  {id:'tokyo',  name:'TOKYO',    tz:'Asia/Tokyo'}
+];
+function buildClocks(){
+  document.getElementById('clocks').innerHTML = cities.map(c => `
+    <div class="box">
+      <h3>${c.name}</h3>
+      <div class="demo-container clocks single linear">
+        <article class="clock simple">
+          <div class="hours-container"><div class="hours"   id="${c.id}-h"></div></div>
+          <div class="minutes-container"><div class="minutes" id="${c.id}-m"></div></div>
+          <div class="seconds-container"><div class="seconds" id="${c.id}-s"></div></div>
+        </article>
+      </div>
+    </div>`).join('');
+}
+function updateClocks(){
+  const now = new Date();
+  cities.forEach(c => {
+    const t = new Date(now.toLocaleString('en-US',{timeZone:c.tz}));
+    const h=t.getHours(), m=t.getMinutes(), s=t.getSeconds();
+    document.getElementById(`${c.id}-h`).style.transform=`rotate(${(h%12)*30+m/2}deg)`;
+    document.getElementById(`${c.id}-m`).style.transform=`rotate(${m*6}deg)`;
+    document.getElementById(`${c.id}-s`).style.transform=`rotate(${s*6}deg)`;
+  });
+  document.getElementById('time').textContent = now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('date').textContent = now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+buildClocks();
+updateClocks(); setInterval(updateClocks,1000);
+
+/* ---------------- HAVA DURUMU ---------------- */
+const wxCities = [
+  {id:'ny',     lat:40.713, lon:-74.006, tz:'America/New_York'},
+  {id:'london', lat:51.507, lon:-0.128,  tz:'Europe/London'},
+  {id:'berlin', lat:52.520, lon:13.405,  tz:'Europe/Berlin'},
+  {id:'trabzon',lat:41.000, lon:39.720,  tz:'Europe/Istanbul'},
+  {id:'riyadh', lat:24.714, lon:46.675,  tz:'Asia/Riyadh'},
+  {id:'tokyo',  lat:35.689, lon:139.692, tz:'Asia/Tokyo'}
+];
+const wxIcon = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'❄️',73:'❄️',75:'❄️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
+function buildWeather(){
+  document.getElementById('weather').innerHTML = wxCities.map(c => `
+    <div class="box" id="wx-${c.id}">
+      <h3>${cities.find(x => x.id===c.id).name}</h3>
+      <div class="weather-icon">⏳</div>
+      <div class="weather-temp">--°C</div>
+      <div class="weather-desc">Loading…</div>
+    </div>`).join('');
+}
+async function updateWeather(){
+  for(const c of wxCities){
+    const box = document.getElementById(`wx-${c.id}`);
+    try{
+      const url = \`https://api.open-meteo.com/v1/forecast?latitude=${
+        c.lat}&longitude=${c.lon}&current_weather=true&temperature_unit=celsius\`;
+      const {current_weather:w} = await (await fetch(url,{cache:'no-store'})).json();
+      box.querySelector('.weather-icon').textContent = wxIcon[w.weathercode] || '❓';
+      box.querySelector('.weather-temp').textContent = Math.round(w.temperature)+'°C';
+      box.querySelector('.weather-desc').textContent =
+        new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:c.tz}).format(new Date());
+    }catch{
+      box.querySelector('.weather-desc').textContent = 'N/A';
+    }
+  }
+}
+buildWeather();
+updateWeather(); setInterval(updateWeather,1800000);
+
+/* ---------------- DÖVİZ ---------------- */
+async function updateRates(){
+  ['usd','eur','sar'].forEach(k=>document.getElementById('rate-'+k).textContent='…');
+  try{
+    const data = await (await fetch('https://doviz.dev/v1/try.json',{cache:'no-store'})).json();
+    const set = (pair,id)=>{document.getElementById(id).textContent =
+      data[pair] ? parseFloat(data[pair]).toFixed(4)+' TRY' : 'N/A';};
+    set('USDTRY','rate-usd'); set('EURTRY','rate-eur'); set('SARTRY','rate-sar');
+    document.getElementById('rates-updated').textContent =
+      'Updated: '+new Date().toLocaleString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }catch{
+    ['usd','eur','sar'].forEach(k=>document.getElementById('rate-'+k).textContent='⚠️');
+    document.getElementById('rates-updated').textContent = 'Update failed';
+  }
+}
+updateRates(); setInterval(updateRates,600000);
+
+/* ---------------- YIL ---------------- */
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
