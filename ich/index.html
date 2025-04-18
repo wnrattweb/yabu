@@ -27,14 +27,19 @@ html,body{
   background:var(--bg);color:var(--text);
   font:24px/1.6 var(--font-primary);
 }
-.container{display:flex;flex-direction:column;height:100%;padding:20px;box-sizing:border-box}
+/* container now fills the TV completely – no bottom gap */
+.container{
+  display:flex;flex-direction:column;justify-content:flex-start;
+  height:100vh;box-sizing:border-box;
+  padding:20px 20px 0; /* removed bottom padding */
+}
 .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:12px 20px;margin-bottom:20px;border:1px solid var(--border);border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.2)}
 .logo img{max-height:50px;margin-right:15px}
 .hotel-details-header h1{margin:0 0 3px;font-size:2.2em;font-weight:700}
 .hotel-details-header p{margin:0;font-size:.9em;color:var(--text-light)}
 .datetime-header{text-align:right;font-size:1.1em;color:var(--text-light)}
 .datetime-header #time{font-size:1.45em;font-weight:700;color:var(--text)}
-.main-content-wrapper{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:22px;padding:10px 5px}
+.main-content-wrapper{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:22px;padding:10px 5px}
 .section h2{font-size:1.8em;font-weight:700;margin:0 0 22px;border-bottom:3px solid var(--accent-color);display:inline-block;padding-bottom:10px}
 .flex-container{display:flex;flex-wrap:wrap;gap:22px}
 .box{background:var(--card);border:1px solid var(--border);border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.2);padding:22px;flex:1 1 260px;min-width:230px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -45,6 +50,11 @@ html,body{
 .weather-icon{font-size:3.8em;margin-bottom:.4em;filter:drop-shadow(0 0 4px rgba(0,0,0,.6))}
 .weather-temp{font-size:1.8em;font-weight:700}
 .weather-desc{font-size:1.1em;color:var(--text-light);min-height:25px;margin-top:5px;text-transform:capitalize}
+
+/* —— customisations ——————————————— */
+/* remove grey card background / border / shadow just for clock boxes */
+.clock-box{background:none;border:none;box-shadow:none;padding:22px 10px}
+.clock-box h3{margin-bottom:12px}
 
 small.update-note{display:block;margin-top:14px;color:var(--text-light);font-size:.95em}
 </style>
@@ -142,7 +152,7 @@ const cities=[
 /* ----- Saat DOM’unu kur ----- */
 function buildClocks(){
   document.getElementById('clocks').innerHTML=cities.map(c=>`
-    <div class="box">
+    <div class="box clock-box">
       <h3>${c.name}</h3>
       <div class="demo-container clocks single linear">
         <article class="clock simple">
@@ -170,13 +180,13 @@ function updateClocks(){
 }
 updateClocks(); setInterval(updateClocks,1000);
 
-/* ----- Hava durumu ----- */
+/* ----- Hava durumu (şehir isimleri gösterir) ----- */
 const wxCities=[
- {id:'ny',    lat:40.7128,lon:-74.0060,tz:'America/New_York'},
- {id:'london',lat:51.5074,lon:-0.1278,tz:'Europe/London'},
- {id:'trabzon',lat:41.0,  lon:39.7203,tz:'Europe/Istanbul'},
- {id:'riyadh',lat:24.7136,lon:46.6753,tz:'Asia/Riyadh'},
- {id:'tokyo', lat:35.6895,lon:139.6917,tz:'Asia/Tokyo'}
+ {id:'ny',    name:'NEW YORK', lat:40.7128,lon:-74.0060,tz:'America/New_York'},
+ {id:'london',name:'LONDON',   lat:51.5074,lon:-0.1278,tz:'Europe/London'},
+ {id:'trabzon',name:'TRABZON', lat:41.0,  lon:39.7203,tz:'Europe/Istanbul'},
+ {id:'riyadh',name:'RIYADH',   lat:24.7136,lon:46.6753,tz:'Asia/Riyadh'},
+ {id:'tokyo', name:'TOKYO',    lat:35.6895,lon:139.6917,tz:'Asia/Tokyo'}
 ];
 const wxIcon={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',
  61:'🌧️',63:'🌧️',65:'🌧️',71:'❄️',73:'❄️',75:'❄️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
@@ -185,7 +195,7 @@ function buildWeather(){
     <div class="box weather-box" data-id="${c.id}">
       <div class="weather-icon">⏳</div>
       <div class="weather-temp">--°C</div>
-      <div class="weather-desc">Loading…</div>
+      <div class="weather-desc">${c.name}</div>
     </div>`).join('');
 }
 async function updateWeather(){
@@ -197,9 +207,8 @@ async function updateWeather(){
       const w=data.current_weather;
       box.querySelector('.weather-icon').textContent=wxIcon[w.weathercode]||'❓';
       box.querySelector('.weather-temp').textContent=`${Math.round(w.temperature)}°C`;
-      box.querySelector('.weather-desc').textContent=
-        new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:c.tz}).format(new Date());
-    }catch{ box.querySelector('.weather-desc').textContent='N/A'; }
+      /* şehir ismi zaten yazılı, değiştirmiyoruz */
+    }catch{ box.querySelector('.weather-temp').textContent='N/A'; }
   }
 }
 buildWeather(); updateWeather(); setInterval(updateWeather,1800000);
