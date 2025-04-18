@@ -3,7 +3,7 @@
           
         }
         .demo-container.clocks{
-            background: rgba(200,200,200,0.9);
+            background:transparent!important;
         }
 
         .demo-container.clocks.single{
